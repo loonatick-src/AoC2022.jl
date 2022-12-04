@@ -1,25 +1,7 @@
 module AoC2022
 
 using Match: @match
-import Base: in
 
-function in(x::UnitRange{T}, y::UnitRange{T}) where {T}
-  x.start >= y.start && x.stop <= y.stop
-end
-
-function partial_overlap(x::R, y::R) where {R <: UnitRange}
-  x.start <= y.start && x.stop <= y.stop && x.stop >= y.start
-end
-
-function overlap(x::R, y::R) where {R <: UnitRange}
-  x ∈ y ||
-    y ∈ x ||
-    partial_overlap(x, y) ||
-    partial_overlap(y, x)
-      
-end
-
-const ∧ = overlap
 
 const DATA_DIR = joinpath("..", "..", "data")
 
@@ -136,13 +118,34 @@ end
 
 
 #== DAY 4 ==#
+function complete_overlap(x::UnitRange{T}, y::UnitRange{T}) where {T}
+  x.start >= y.start && x.stop <= y.stop
+end
+
+const ⊂ = complete_overlap
+
+
+function partial_overlap(x::R, y::R) where {R <: UnitRange}
+  x.start <= y.start && x.stop <= y.stop && x.stop >= y.start
+end
+
+function overlap(x::R, y::R) where {R <: UnitRange}
+  x ⊂ y ||
+    y ⊂ x ||
+    partial_overlap(x, y) ||
+    partial_overlap(y, x)
+      
+end
+
+const ∧ = overlap
+
 function solve4_1(input_str)
   task_pairs = split(input_str, '\n')
   split_tasks = split.(task_pairs, ',')
   nredundant_tasksets = 0
   for p in split_tasks
     tis = parse_interval.(p)
-    if tis[1] ∈ tis[2] || tis[2] ∈ tis[1]
+    if tis[1] ⊂ tis[2] || tis[2] ⊂ tis[1]
       nredundant_tasksets +=1
     end
   end
@@ -157,7 +160,6 @@ function solve4_2(input_str)
   for p in split_tasks
     tis = parse_interval.(p)
     if tis[1] ∧ tis[2]
-      @show tis
       nredundant_tasksets +=1
     end
   end
