@@ -2,13 +2,15 @@ module AoC2022
 
 using Match: @match
 
+split_whitespace(s) = split(s, r"\s+")
+split_newline(s) = split(s, '\n')
 
 const DATA_DIR = joinpath("..", "..", "data")
 
 function read_input(day::I) where {I <: Integer}
   input_path = joinpath(DATA_DIR,
                         string(day)) * ".txt"
-  open(input_path, "r") |> read |> String |> strip
+  open(input_path, "r") |> read |> String |> rstrip
 end
 
 #== DAY 1 ==#
@@ -169,6 +171,124 @@ end
 function parse_interval(s)
   interval_lims = parse.(Int, split(s, '-'))
   interval_lims[1]:interval_lims[2]
+end
+
+#== Day 5 ==#
+using DataStructures: Stack
+
+function parse_stacks(stack_lines)
+  labels = stack_lines[end]
+  # assumes no more than 9 stacks really
+  offsets = map(x -> x.start, findall(r"[1-9]", labels))
+  nstacks = labels |> strip |> split_whitespace |> length
+  crate_stacks = Vector{Stack{eltype(labels)}}(undef, nstacks)
+  # TODO: there has to be a better way of this initialization
+  for i in 1:length(crate_stacks)
+    crate_stacks[i] = Stack{eltype(labels)}()
+  end
+  # TODO: there should be reverse iterator or something like that
+  for line in stack_lines[end-1:-1:1]
+    crate_labels = line[offsets]
+    for (label,stack) in zip(crate_labels, crate_stacks)
+      if label != ' '
+        push!(stack, label)
+      end
+    end
+  end
+  crate_stacks
+end
+
+function parse_moves(stacks, proc)
+  number_idxs = [2,4,6]
+  split_moves = proc .|> split_whitespace
+  move_nums = Matrix{Int}(undef, 3, length(proc))
+  for (i,move) in enumerate(split_moves)
+    move_nums[:,i] .= parse.(Int, move[number_idxs])
+  end
+  move_nums
+end
+
+function time_to_move9001!(stacks, moves)
+  for m in eachcol(moves)
+    count, from, to = m
+    temp = Stack{Char}()
+    for i in 1:count
+      push!(temp, pop!(stacks[from]))
+    end
+    for i in 1:count
+      push!(stacks[to], pop!(temp))
+    end
+  end
+  nothing
+end
+
+function solve5_1(s)
+  input_lines = split(s, '\n')
+  record_break = findfirst(s->length(s) == 0, input_lines)
+  stack_lines = input_lines[1:record_break - 1]
+  stacks = parse_stacks(stack_lines)
+  proc = input_lines[record_break + 1 : end]
+  moves = parse_moves(stacks, proc)
+  time_to_move!(stacks, moves)
+  top_crates = first.(stacks)
+  top_crates
+end
+
+
+function solve5_2(s)
+  input_lines = split(s, '\n')
+  record_break = findfirst(s->length(s) == 0, input_lines)
+  stack_lines = input_lines[1:record_break - 1]
+  stacks = parse_stacks(stack_lines)
+  proc = input_lines[record_break + 1 : end]
+  moves = parse_moves(stacks, proc)
+  time_to_move9001!(stacks, moves)
+  top_crates = first.(stacks)
+  top_crates
+end
+
+#== Day 6 ==#
+import Base:findfirst
+
+using DataStructures: Deque, popfirst!, pushfirst!
+
+function findfirst(target::T, deq::Deque{T}) where {T}
+  for (i,x) in enumerate(deq)
+    if x == target
+      return i
+    end
+  end
+  return 0
+end
+
+function find_marker(s, l)
+  char_set = Deque{eltype(s)}()
+  rv = 0
+  for (i,c) in enumerate(s)
+    loc = findfirst(c, char_set)
+    if loc == 0
+      push!(char_set, c)
+      if length(char_set) == l
+        return i
+      end
+    else
+      push!(char_set, c)
+      for i in 1:loc
+        popfirst!(char_set)
+      end
+    end
+  end
+  return -1 # unreachable for nice input
+end
+
+# refactored this after the fact :/
+function solve6_1(s)
+  find_marker(s, 4)
+end
+
+
+function solve6_2(s)
+  find_marker(s, 14)
 end
 
 end  # module AoC2022
