@@ -1,5 +1,6 @@
 module AoC2022
 
+using Match
 using Match: @match
 
 get_value(::Type{Val{T}}) where {T} = T
@@ -316,5 +317,80 @@ function solve6_2(s)
 end
 
 #== DAY 7 ==#
+"""Radical"""
+parse_int(s) = parse(Int, s)
+
+@enum CMD begin
+  ls
+  cd
+end
+
+mutable struct DirNode
+  children::Vector{Union{Int, DirNode}}
+  parent::Union{DirNode, Nothing}
+end
+
+parse_filesize(s) = s |> split_whitespace |> first |> parse_int
+
+function parse_cmd(s)
+  tokens = split_whitespace(s)
+  cmd_name = tokens[2]
+  @match cmd_name begin
+    "ls" => ls
+    "cd" => cd
+    _ => ls   # unreachable for nice input and good logic
+  end
+end
+
+function process_ls!(ds, curr_dir, input_lines, line_number)
+  line_number += 1
+  while line_number <= length(input_lines)
+    line = input_lines[line_number]
+    split_line = split_whitespace(line)
+    if (split_line[1]) == "dir"
+      push!(curr_dir.children, DirNode(Union{Int, DirNode}[], curr_dir))
+    elseif split_line[1] != raw"$"
+      push!(cur_dir.children, parse_filesize(line))
+    else
+      return line_number
+    end
+    line_number += 1
+  end
+  line_number
+end
+
+function process_cd!(ds, curr_dir, line)
+  dir_name = split_whitespace(line)[2]
+  if dir_name == ".."
+    return curr_dir.parent
+  else
+    push!(curr_dir.children, DirNode(Union{Int,DirNode}[], curr_dir))
+    return curr_dir.children[end]
+  end
+end
+
+function reduce!(ds)
+  # TODO
+end
+
+function solve7_1(s)
+  ds = DirNode(Union{Int, DirNode}[], nothing)
+  input_lines = split(s, '\n')
+  curr_dir = ds
+  line_number = 2
+  while line_number < length(input_lines)
+    l = input_lines[line_number]
+    cmd = parse_cmd(l)
+    if cmd == ls
+      line_number = process_ls!(ds, curr_dir, input_lines, line_number)
+    else
+      curr_dir = process_cd!(ds, curr_dir, l)
+    end
+  end
+  ds
+end
+
+function solve7_2(s)
+end
 
 end  # module AoC2022
