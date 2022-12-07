@@ -2,16 +2,31 @@ module AoC2022
 
 using Match: @match
 
+get_value(::Type{Val{T}}) where {T} = T
+
+@generated function solve(day, part)
+  d = get_value(day)
+  p = get_value(part)
+  solve_fn = Meta.parse("solve$(d)_$(p)")
+  input = Meta.parse("read_input($(d))")
+  Expr(:call, solve_fn, input)
+end
+
+export solve
+
 split_whitespace(s) = split(s, r"\s+")
 split_newline(s) = split(s, '\n')
 
 const DATA_DIR = joinpath("..", "..", "data")
+
 
 function read_input(day::I) where {I <: Integer}
   input_path = joinpath(DATA_DIR,
                         string(day)) * ".txt"
   open(input_path, "r") |> read |> String |> rstrip
 end
+
+export read_input
 
 #== DAY 1 ==#
 function solve1_2(input_str::S) where {S <: AbstractString}
@@ -28,7 +43,7 @@ function solve1_2(input_str::S) where {S <: AbstractString}
 
     rb_prev = rb + 1
   end
-  elf_capacities
+  sum(elf_capacities[end-1:end])
 end
 
 
@@ -290,5 +305,7 @@ end
 function solve6_2(s)
   find_marker(s, 14)
 end
+
+#== DAY 7 ==#
 
 end  # module AoC2022
