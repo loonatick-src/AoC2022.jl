@@ -4,6 +4,15 @@ using Match: @match
 
 get_value(::Type{Val{T}}) where {T} = T
 
+macro comptime(expr)
+  fn_name = expr.args[1]
+  fn_args = expr.args[2:end]
+  expr.args[2:end] .= Val.(fn_args)
+  eval(expr)
+end
+
+export @comptime
+
 @generated function solve(day, part)
   d = get_value(day)
   p = get_value(part)
