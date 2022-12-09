@@ -422,4 +422,34 @@ function solve7_1(s)
   sub_size
 end
 
+function find_dir_to_delete(ds, to_free)
+  curr_size = typemax(Int)
+  delete_internal(ds, to_free, curr_size)
+end
+
+function delete_internal(ds, to_free, curr_size)
+  for item in ds.children
+    if item isa Int
+      continue
+    elseif item.size < to_free
+      continue
+    elseif item.size < curr_size
+      curr_size = item.size
+      curr_size = delete_internal(item, to_free, curr_size)
+    end
+  end
+  curr_size
+end
+
+function solve7_2(s)
+  total_space = 70_000_000
+  required_space = 30_000_000
+  dir_tree = construct_dirtree(s)
+  (dir_tree.size, _) = calculate_dir_size(dir_tree, 0)
+  free_space = total_space - dir_tree.size
+  to_free = required_space - free_space
+  delete_size = find_dir_to_delete(dir_tree, to_free)
+  final_free_space = dir_tree.size - delete_size
+  delete_size
+end
 end  # module AoC2022
