@@ -26,6 +26,7 @@ export solve
 
 split_whitespace(s) = split(s, r"\s+")
 split_newline(s) = split(s, '\n')
+export split_newline
 
 const DATA_DIR = joinpath("..", "..", "data")
 
@@ -35,7 +36,12 @@ function read_input(day::I) where {I <: Integer}
   open(input_path, "r") |> read |> String |> rstrip
 end
 
+function read_input_lines(day::I) where {I <: Integer}
+  read_input(day) |> split_newline
+end
+
 export read_input
+export read_input_lines
 
 #== DAY 1 ==#
 function solve1_2(input_str::S) where {S <: AbstractString}
@@ -377,10 +383,6 @@ function process_cd!(ds, curr_dir, line)
   end
 end
 
-function reduce!(ds)
-  # TODO
-end
-
 function construct_dirtree(s)
   ds = DirNode("/")
   input_lines = split(s, '\n')
@@ -452,4 +454,19 @@ function solve7_2(s)
   final_free_space = dir_tree.size - delete_size
   delete_size
 end
+
+#== DAY 8 ==#
+function solve8_1(s)
+  input_lines = split_newline(s)
+  grid_sz = (length(input_lines), length(input_lines[1]))
+  tree_heights = Matrix{UInt8}(undef, grid_sz...)
+  for (i,row) in enumerate(input_lines)
+    for (j,col) in enumerate(row)
+      tree_heights[i,j] = parse(UInt8, col)
+    end
+  end
+  tree_heights
+end
+
+
 end  # module AoC2022
