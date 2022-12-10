@@ -456,17 +456,6 @@ function solve7_2(s)
 end
 
 #== DAY 8 ==#
-function solve8_1(s)
-  input_lines = split_newline(s)
-  grid_sz = (length(input_lines), length(input_lines[1]))
-  tree_heights = Matrix{UInt8}(undef, grid_sz...)
-  for (i,row) in enumerate(input_lines)
-    for (j,col) in enumerate(row)
-      tree_heights[i,j] = parse(UInt8, col)
-    end
-  end
-  tree_heights
-end
-
+include("day08.jl")
 
 end  # module AoC2022
