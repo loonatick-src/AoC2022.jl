@@ -35,9 +35,6 @@ function parse(::Type{Instruction}, s::AbstractString)
 end
   
 function solve10_1(s)
-  #= FIXME: the last probed signal value is incorrect for the test input
-  #         Not sure why. =#
-  
   lines = split_newline(s)
   instructions = parse.(Instruction, lines)
   X = 1
