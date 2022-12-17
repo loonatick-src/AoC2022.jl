@@ -6,13 +6,15 @@ import Base.rstrip
   
 using Base: Fix1, Fix2
 
-# TODO: move to AoC2022.jl
+# partial application versions of some useful functions in `Base`
 parse(T::Type) = Fix1(parse, T)
 
 split(s) = Fix2(split, s)
-split_csv = split(r",\s*")
 
 rstrip(s::AbstractChar) = Fix1(rstrip, ==(s))
+
+split_csv = split(r",\s*")
+split_records = split(r"\n\n+")
 
 # how do I make this type stable?
 mutable struct Monkey
@@ -31,12 +33,12 @@ end
 function parse(::Type{Monkey}, s)
   lines = split_newline(s)
   # laying pipe like an absolute chad
-  id = lines[1] |> split_whitespace |> last |> rstrip(':') |>  parse(Int)
+  id = lines[1]  |>  split_whitespace  |>  last  |>  rstrip(':')  |>  parse(Int)
   
-  starting_items_strs = lines[2] |> split_csv
-  first_item = starting_items_strs |> first |> split_whitespace |> last |> parse(Int)
-  remaining_items = parse.(Int, starting_items_strs[2:end])
-  items = Queue{Int}()
+  starting_items_strs = lines[2]  |>  split_csv
+  first_item          = starting_items_strs  |>  first  |>  split_whitespace  |>  last  |>  parse(Int)
+  remaining_items     = parse.(Int, starting_items_strs[2:end])
+  items               = Queue{Int}()
   enqueue!(items, first_item)
   for item in remaining_items
     enqueue!(items, item)
@@ -44,9 +46,9 @@ function parse(::Type{Monkey}, s)
 
   test = parse_last(lines[4], Int)
 
-  true_partner = parse_last(lines[5], Int)
-  false_partner = parse_last(lines[6], Int)
-  partners = (true_partner, false_partner)
+  t_partner = parse_last(lines[5], Int)
+  f_partner = parse_last(lines[6], Int)
+  partners  = (t_partner, f_partner)
 
   op = lines[3] |> split(r":\s*") |> last |> Meta.parse
 
@@ -54,6 +56,5 @@ function parse(::Type{Monkey}, s)
 end
 
 function solve11_1(s)
-  monkey_strs = s |> split(r"\n\n")
-  monkeys = parse.(Monkey, monkey_strs)
+  monkeys = s |> split_records .|> parse(Monkey)
 end
